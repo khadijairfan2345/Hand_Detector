@@ -20,12 +20,32 @@ class HandDetector:
             # model_complexity=1
         )
 
+def verify_right_left(model, results, image_width, image_height):
+    """
+    Verifies if both hands are present (right and left) by comparing pinkie finger landmarks.
+    Returns a dictionary indicating the presence of each hand.
+    """
+    hands_detected = {"right": False, "left": False}
+    
+    for hand_landmarks in results.multi_hand_landmarks:
+      print('hand_landmarks:', hand_landmarks)
+      print(
+          f'Index finger tip coordinates: (',
+          f'{hand_landmarks.landmark[model.mp_hands.HandLandmark.INDEX_FINGER_TIP].x * image_width}, '
+          f'{hand_landmarks.landmark[model.mp_hands.HandLandmark.INDEX_FINGER_TIP].y * image_height})'
+      )
+      print(
+          f'Pinkie finger tip coordinates: (',
+          f'{hand_landmarks.landmark[model.mp_hands.HandLandmark.PINKIE_FINGER_TIP].x * image_width}, '
+          f'{hand_landmarks.landmark[model.mp_hands.HandLandmark.PINKIE_FINGER_TIP].y * image_height})'
+      )
+
+    return True
 
 def process_image_folder(model, input_folder, output_folder):
     """Process all images in a folder and generate XML annotations."""
-
+    # Supported image extensions
     image_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".tiff")
-    
     # List all image files in the folder
     image_files = [
         f for f in os.listdir(input_folder) if f.lower().endswith(image_extensions)
@@ -81,6 +101,8 @@ def process_image_folder(model, input_folder, output_folder):
 
                         pdb.set_trace()
                     print("Found ", hand_count, "hands")
+                    if hand_count == 2:
+                        verify_right_left(model, results, image_width, image_height)
                     seen.add(handedness)
         else:
             bounding_box = (0, 0, 0, 0)
